@@ -1,16 +1,16 @@
 "use client"
 
 import type React from "react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { Pill, Shield } from "lucide-react"
 
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { Pill, Shield } from "lucide-react"
+import { authService } from "@/lib/auth-service"
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("")
@@ -30,24 +30,12 @@ export default function RegisterPage() {
       return
     }
 
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
     setSuccess(null)
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard`,
-          data: {
-            full_name: fullName,
-          },
-        },
-      })
-
-      if (error) throw error
+      await authService.register(email, password, fullName)
 
       setSuccess("Registration successful! You can now sign in.")
       setTimeout(() => {

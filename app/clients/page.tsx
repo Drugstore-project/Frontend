@@ -1,36 +1,38 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+"use client"
+
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { ClientList } from "@/components/client-list"
 import { ClientRegistration } from "@/components/client-registration"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { authService } from "@/lib/auth-service"
 
-export default async function ClientsPage() {
-  const supabase = await createClient()
+export default function ClientsPage() {
+  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data?.user) {
-    redirect("/auth/login")
+  useEffect(() => {
+    const token = authService.getToken()
+    if (!token) {
+      router.push("/auth/login")
+      return
+    }
+    setUser({ full_name: "Pharmacist", role: "manager" })
+    setLoading(false)
+  }, [router])
+
+  if (loading) {
+    return <div>Loading...</div>
   }
 
-  // Get user profile
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", data.user.id).single()
-
-  // Check if user has permission to manage clients
-  if (!profile || !["manager", "owner"].includes(profile.role)) {
-    redirect("/dashboard")
-  }
-
-  // Get all clients
-  const { data: clients } = await supabase
-    .from("clients")
-    .select("*")
-    .eq("is_active", true)
-    .order("name", { ascending: true })
+  // Mock data
+  const clients: any[] = []
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardHeader user={profile} />
+      <DashboardHeader user={user} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
@@ -45,7 +47,7 @@ export default async function ClientsPage() {
           </TabsList>
 
           <TabsContent value="list" className="space-y-6">
-            <ClientList clients={clients || []} />
+            <ClientList clients={clients} />
           </TabsContent>
 
           <TabsContent value="register" className="space-y-6">

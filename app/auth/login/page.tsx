@@ -1,71 +1,37 @@
 "use client"
 
 import type React from "react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { Pill, Shield } from "lucide-react"
 
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { Pill, Shield, UserPlus } from "lucide-react"
-import { createTestUser } from "@/app/actions/create-test-user"
+import { authService } from "@/lib/auth-service"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [isCreatingTestUser, setIsCreatingTestUser] = useState(false)
-  const [testUserMessage, setTestUserMessage] = useState<string | null>(null)
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-        options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard`,
-        },
-      })
-      if (error) throw error
+      const response = await authService.login(email, password)
+      authService.setToken(response.access_token)
       router.push("/dashboard")
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
+      setError(error instanceof Error ? error.message : "An error occurred during login")
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const handleCreateTestUser = async () => {
-    setIsCreatingTestUser(true)
-    setTestUserMessage(null)
-    setError(null)
-
-    try {
-      const result = await createTestUser()
-      if (result.error) {
-        setError(result.error)
-      } else {
-        setTestUserMessage(
-          result.message || "Test admin account ready! You can now login with admin123@pharmacare.com / admin123",
-        )
-        // Auto-fill the form
-        setEmail("admin123@pharmacare.com")
-        setPassword("admin123")
-      }
-    } catch (error) {
-      setError("Failed to create test user")
-    } finally {
-      setIsCreatingTestUser(false)
     }
   }
 
@@ -123,11 +89,7 @@ export default function LoginPage() {
                   <p className="text-sm text-red-600">{error}</p>
                 </div>
               )}
-              {testUserMessage && (
-                <div className="bg-green-50 border border-green-200 rounded-md p-3">
-                  <p className="text-sm text-green-600">{testUserMessage}</p>
-                </div>
-              )}
+              
               <Button
                 type="submit"
                 className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium"
@@ -136,18 +98,6 @@ export default function LoginPage() {
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
-
-            <div className="mt-4">
-              <Button
-                onClick={handleCreateTestUser}
-                disabled={isCreatingTestUser}
-                variant="outline"
-                className="w-full h-11 border-green-200 text-green-700 hover:bg-green-50 bg-transparent"
-              >
-                <UserPlus className="h-4 w-4 mr-2" />
-                {isCreatingTestUser ? "Creating Test Account..." : "Create Test Admin Account"}
-              </Button>
-            </div>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
@@ -162,10 +112,7 @@ export default function LoginPage() {
               <p className="text-xs font-medium text-gray-700 mb-2">Demo Credentials:</p>
               <div className="text-xs text-gray-600 space-y-1">
                 <div>
-                  <strong>Admin:</strong> admin123@pharmacare.com / admin123
-                </div>
-                <div>
-                  <strong>Staff:</strong> staff@pharmacare.com / teststaff123
+                  <strong>Admin:</strong> admin@example.com / admin
                 </div>
               </div>
             </div>
