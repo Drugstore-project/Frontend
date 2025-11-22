@@ -27,7 +27,7 @@ export default function LoginPage() {
     try {
       const response = await authService.login(email, password)
       authService.setToken(response.access_token)
-      router.push("/dashboard")
+      router.push("/sales")
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred during login")
     } finally {

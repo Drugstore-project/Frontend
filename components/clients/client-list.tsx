@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,8 +15,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { createClient } from "@/lib/supabase/client"
+import { apiService } from "@/lib/api-service"
 import { Search, Edit, Trash2, AlertTriangle, Shield } from "lucide-react"
+import { ClientEditDialog } from "./client-edit-dialog"
 
 interface Client {
   id: string
@@ -39,15 +40,26 @@ export function ClientList({ clients: initialClients }: ClientListProps) {
   const [clients, setClients] = useState(initialClients)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
+  const [clientToEdit, setClientToEdit] = useState<Client | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const supabase = createClient()
+  useEffect(() => {
+    setClients(initialClients)
+  }, [initialClients])
 
   const filteredClients = clients.filter(
-    (client) =>
-      client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.cpf.includes(searchTerm.replace(/\D/g, "")),
+    (client) => {
+      const searchLower = searchTerm.toLowerCase()
+      const nameMatch = client.name && client.name.toLowerCase().includes(searchLower)
+      
+      // Normalize CPF for search: remove non-digits
+      const searchDigits = searchTerm.replace(/\D/g, "")
+      const clientCpfDigits = client.cpf ? client.cpf.replace(/\D/g, "") : ""
+      const cpfMatch = searchDigits && clientCpfDigits.includes(searchDigits)
+
+      return nameMatch || cpfMatch
+    }
   )
 
   const formatCPF = (cpf: string) => {
@@ -74,35 +86,13 @@ export function ClientList({ clients: initialClients }: ClientListProps) {
 
     setLoading(true)
     try {
-      // LGPD Compliance: Anonymize data instead of hard delete
-      const { error } = await supabase
-        .from("clients")
-        .update({
-          name: "DELETED_USER",
-          cpf: "00000000000",
-          phone: "00000000000",
-          email: null,
-          address: null,
-          is_active: false,
-          modification_history: [
-            ...(selectedClient.modification_history || []),
-            {
-              action: "LGPD_DELETION",
-              timestamp: new Date().toISOString(),
-              reason: "User requested data deletion",
-            },
-          ],
-        })
-        .eq("id", selectedClient.id)
-
-      if (error) {
-        console.error("Error deleting client:", error)
-      } else {
-        // Remove from local state
-        setClients(clients.filter((c) => c.id !== selectedClient.id))
-        setShowDeleteDialog(false)
-        setSelectedClient(null)
-      }
+      await apiService.deleteClient(selectedClient.id)
+      
+      // Remove from local state
+      setClients(clients.filter((c) => c.id !== selectedClient.id))
+      setShowDeleteDialog(false)
+      setSelectedClient(null)
+      
     } catch (error) {
       console.error("Error deleting client:", error)
     } finally {
@@ -153,7 +143,7 @@ export function ClientList({ clients: initialClients }: ClientListProps) {
                       {client.address && <div className="text-sm text-gray-600 mt-1">Address: {client.address}</div>}
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => setClientToEdit(client)}>
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Dialog
@@ -209,6 +199,17 @@ export function ClientList({ clients: initialClients }: ClientListProps) {
           </div>
         </CardContent>
       </Card>
+
+      {clientToEdit && (
+        <ClientEditDialog 
+            client={clientToEdit} 
+            open={!!clientToEdit} 
+            onOpenChange={(open) => !open && setClientToEdit(null)}
+            onSuccess={(updatedClient) => {
+                setClients(clients.map(c => c.id === updatedClient.id ? { ...c, ...updatedClient } : c))
+            }}
+        />
+      )}
     </div>
   )
 }

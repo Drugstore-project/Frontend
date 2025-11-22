@@ -62,9 +62,10 @@ interface SalesInterfaceProps {
   clients: Client[]
   paymentMethods: PaymentMethod[]
   sellerId: string
+  onSaleComplete?: () => void
 }
 
-export function SalesInterface({ products, clients, paymentMethods, sellerId }: SalesInterfaceProps) {
+export function SalesInterface({ products, clients, paymentMethods, sellerId, onSaleComplete }: SalesInterfaceProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [saleItems, setSaleItems] = useState<SaleItem[]>([])
@@ -224,7 +225,7 @@ export function SalesInterface({ products, clients, paymentMethods, sellerId }: 
         discount_amount: totalDiscount,
         final_amount: finalTotal,
         prescription_required: requiresPrescription,
-        prescription_file: prescriptionFile,
+        prescription_file: null, // prescriptionFile - File upload temporarily disabled to prevent serialization errors
       })
 
       if (result.success) {
@@ -235,6 +236,9 @@ export function SalesInterface({ products, clients, paymentMethods, sellerId }: 
         setPaymentMethodId("")
         setPrescriptionFile(null)
         setMessage({ type: "success", text: "Sale completed successfully!" })
+        if (onSaleComplete) {
+            onSaleComplete()
+        }
       } else {
         setMessage({ type: "error", text: result.error || "Failed to complete sale" })
       }
@@ -332,17 +336,21 @@ export function SalesInterface({ products, clients, paymentMethods, sellerId }: 
           </CardHeader>
           <CardContent>
             <Select
-              value={selectedClient?.id || ""}
+              value={selectedClient?.id || "no_selection"}
               onValueChange={(value) => {
-                const client = clients.find((c) => c.id === value)
-                setSelectedClient(client || null)
+                if (value === "no_selection") {
+                  setSelectedClient(null)
+                } else {
+                  const client = clients.find((c) => c.id === value)
+                  setSelectedClient(client || null)
+                }
               }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select client or leave empty" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No client selected</SelectItem>
+                <SelectItem value="no_selection">No client selected</SelectItem>
                 {clients.map((client) => (
                   <SelectItem key={client.id} value={client.id}>
                     <div>

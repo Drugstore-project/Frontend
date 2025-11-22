@@ -2,39 +2,118 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { DashboardHeader } from "@/components/dashboard-header"
-import { ProductSearch } from "@/components/product-search"
-import { QuickActions } from "@/components/quick-actions"
-import { RecentSales } from "@/components/recent-sales"
-import { StockOverview } from "@/components/stock-overview"
-import { ExpirationOverview } from "@/components/expiration-overview"
+import { DashboardHeader } from "@/components/dashboard/dashboard-header"
+import { ProductSearch } from "@/components/products/product-search"
+import { QuickActions } from "@/components/sales/quick-actions"
+import { RecentSales } from "@/components/sales/recent-sales"
+import { StockOverview } from "@/components/stock/stock-overview"
+import { ExpirationOverview } from "@/components/expiration/expiration-overview"
 import { authService } from "@/lib/auth-service"
+import { apiService } from "@/lib/api-service"
 
 export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [lowStockProducts, setLowStockProducts] = useState<any[]>([])
+  const [expiringProducts, setExpiringProducts] = useState<any[]>([])
+  const [recentSales, setRecentSales] = useState<any[]>([])
 
   useEffect(() => {
-    const token = authService.getToken()
-    if (!token) {
-      router.push("/auth/login")
-      return
+    const fetchData = async () => {
+      const token = authService.getToken()
+      if (!token) {
+        router.push("/auth/login")
+        return
+      }
+
+      try {
+        const userData = await authService.getMe(token)
+        
+        // Default fallback if role is missing or numeric
+        userData.role = userData.role || 'staff';
+
+        setUser(userData)
+
+        // Fetch products, orders, and users for dashboard widgets
+        const [products, orders, users] = await Promise.all([
+          apiService.getProducts(),
+          apiService.getOrders(),
+          apiService.getClients()
+        ])
+        
+        // Process Low Stock (threshold 10)
+        const lowStock = products
+          .filter((p: any) => p.stock_quantity <= 10)
+          .map((p: any) => ({
+            product_id: p.id.toString(),
+            product_name: p.name,
+            current_stock: p.stock_quantity,
+            min_stock_level: 10
+          }))
+        setLowStockProducts(lowStock)
+
+        // Process Expiration
+        const today = new Date()
+        const expiring = products
+          .filter((p: any) => p.validity)
+          .map((p: any) => {
+            const validityDate = new Date(p.validity)
+            const diffTime = validityDate.getTime() - today.getTime()
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+            return {
+              product_id: p.id.toString(),
+              product_name: p.name,
+              expiration_date: p.validity,
+              days_until_expiration: diffDays
+            }
+          })
+          .filter((p: any) => p.days_until_expiration <= 90) // Show items expiring in next 90 days
+          .sort((a: any, b: any) => a.days_until_expiration - b.days_until_expiration)
+          
+        setExpiringProducts(expiring)
+
+        // Process Recent Sales
+        const processedSales = orders
+          .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          .slice(0, 5) // Get top 5 recent sales
+          .map((order: any) => {
+            const client = users.find((u: any) => u.id === order.user_id)
+            const firstItem = order.items[0]
+            const product = products.find((p: any) => p.id === firstItem?.product_id)
+            
+            return {
+              id: order.id.toString(),
+              customer_name: client?.name || "Walk-in Client",
+              quantity: order.items.reduce((acc: number, item: any) => acc + item.quantity, 0),
+              total_price: order.total_value,
+              sale_date: order.created_at,
+              products: {
+                name: product?.name || "Unknown Product",
+                price: firstItem?.unit_price || 0
+              },
+              profiles: {
+                full_name: "Staff" // Placeholder as seller info is not yet in Order model
+              }
+            }
+          })
+        setRecentSales(processedSales)
+
+      } catch (error) {
+        console.error("Failed to fetch data", error)
+        // Fallback for demo/testing if backend isn't ready
+        setUser({ full_name: "Pharmacist", role: "manager" })
+      } finally {
+        setLoading(false)
+      }
     }
 
-    // Mock user for now, or fetch from API
-    setUser({ full_name: "Pharmacist", role: "manager" })
-    setLoading(false)
+    fetchData()
   }, [router])
 
   if (loading) {
     return <div>Loading...</div>
   }
-
-  // Mock data
-  const recentSales: any[] = []
-  const lowStockProducts: any[] = []
-  const expiringProducts: any[] = []
 
   return (
     <div className="min-h-screen bg-gray-50">

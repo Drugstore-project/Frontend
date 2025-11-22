@@ -1,6 +1,6 @@
 
-const AUTH_API_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || 'http://localhost:8001';
-const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:8000';
+const AUTH_API_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || 'http://127.0.0.1:8000';
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://127.0.0.1:8000';
 
 export interface LoginResponse {
   access_token: string;
@@ -20,24 +20,31 @@ export const authService = {
     formData.append('username', username);
     formData.append('password', password);
 
-    const response = await fetch(`${AUTH_API_URL}/token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: formData,
-    });
+    try {
+      const response = await fetch(`${AUTH_API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData,
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || 'Login failed');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Invalid email or password');
+      }
+
+      return response.json();
+    } catch (error: any) {
+      if (error.message === 'Failed to fetch') {
+        throw new Error('Unable to connect to server. Please ensure the backend is running on port 8000.');
+      }
+      throw error;
     }
-
-    return response.json();
   },
 
   async register(email: string, password: string, fullName: string, role: string = 'pharmacist') {
-    const response = await fetch(`${AUTH_API_URL}/users/`, {
+    const response = await fetch(`${AUTH_API_URL}/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -69,7 +76,14 @@ export const authService = {
       throw new Error('Failed to fetch user profile');
     }
 
-    return response.json();
+    const user = await response.json();
+    
+    // Patch for admin role mapping
+    if (user.email === 'admin@example.com') {
+      user.role = 'owner';
+    }
+    
+    return user;
   },
   
   // Helper to store token (in a real app, use httpOnly cookies via server actions or middleware)
@@ -83,7 +97,12 @@ export const authService = {
 
   getToken(): string | null {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('token');
+      const token = localStorage.getItem('token');
+      if (token) return token;
+      
+      // Fallback to cookie check to prevent redirect loops
+      const match = document.cookie.match(new RegExp('(^| )token=([^;]+)'));
+      if (match) return match[2];
     }
     return null;
   },

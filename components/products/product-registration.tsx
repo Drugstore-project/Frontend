@@ -30,9 +30,10 @@ interface Supplier {
 interface ProductRegistrationProps {
   categories: Category[]
   suppliers: Supplier[]
+  onSuccess?: () => void
 }
 
-export function ProductRegistration({ categories, suppliers }: ProductRegistrationProps) {
+export function ProductRegistration({ categories, suppliers, onSuccess }: ProductRegistrationProps) {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -137,6 +138,9 @@ export function ProductRegistration({ categories, suppliers }: ProductRegistrati
           requires_prescription: false,
           max_quantity_per_sale: "",
         })
+        if (onSuccess) {
+          onSuccess()
+        }
       } else {
         setMessage({ type: "error", text: result.error || "Failed to register product" })
       }

@@ -4,8 +4,8 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get("token")?.value
 
   // Define public paths that don't require authentication
-  const publicPaths = ["/auth/login", "/auth/register", "/"]
-  const isPublicPath = publicPaths.some(path => request.nextUrl.pathname.startsWith(path))
+  const publicPaths = ["/auth/login", "/auth/register"]
+  const isPublicPath = publicPaths.some(path => request.nextUrl.pathname.startsWith(path)) || request.nextUrl.pathname === "/"
 
   if (!token && !isPublicPath) {
     // No token and trying to access protected route
@@ -14,12 +14,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (token && request.nextUrl.pathname === "/auth/login") {
-    // Already logged in and trying to access login page
-    const url = request.nextUrl.clone()
-    url.pathname = "/dashboard"
-    return NextResponse.redirect(url)
-  }
+  // if (token && request.nextUrl.pathname === "/auth/login") {
+  //   // Already logged in and trying to access login page
+  //   const url = request.nextUrl.clone()
+  //   url.pathname = "/sales"
+  //   return NextResponse.redirect(url)
+  // }
 
   return NextResponse.next()
 }

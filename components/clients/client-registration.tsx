@@ -9,10 +9,14 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { createClient } from "@/lib/supabase/client"
+import { apiService } from "@/lib/api-service"
 import { AlertCircle, CheckCircle2 } from "lucide-react"
 
-export function ClientRegistration() {
+interface ClientRegistrationProps {
+  onSuccess?: () => void
+}
+
+export function ClientRegistration({ onSuccess }: ClientRegistrationProps) {
   const [formData, setFormData] = useState({
     cpf: "",
     name: "",
@@ -24,8 +28,6 @@ export function ClientRegistration() {
   })
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
-
-  const supabase = createClient()
 
   const formatCPF = (value: string) => {
     const numbers = value.replace(/\D/g, "")
@@ -79,40 +81,32 @@ export function ClientRegistration() {
     }
 
     try {
-      const { data, error } = await supabase.from("clients").insert([
-        {
-          cpf: formData.cpf.replace(/\D/g, ""),
-          name: formData.name,
-          phone: formData.phone.replace(/\D/g, ""),
-          email: formData.email || null,
-          address: formData.address || null,
-          birth_date: formData.birth_date || null,
-          client_type: formData.client_type,
-          is_active: true,
-        },
-      ])
+      await apiService.createClient({
+        cpf: formData.cpf.replace(/\D/g, ""),
+        name: formData.name,
+        phone: formData.phone.replace(/\D/g, ""),
+        email: formData.email,
+        address: formData.address,
+        birth_date: formData.birth_date,
+        client_type: formData.client_type,
+      })
 
-      if (error) {
-        if (error.code === "23505") {
-          // Unique constraint violation
-          setMessage({ type: "error", text: "A client with this CPF already exists" })
-        } else {
-          setMessage({ type: "error", text: error.message })
-        }
-      } else {
-        setMessage({ type: "success", text: "Client registered successfully!" })
-        setFormData({
-          cpf: "",
-          name: "",
-          phone: "",
-          email: "",
-          address: "",
-          birth_date: "",
-          client_type: "regular",
-        })
+      setMessage({ type: "success", text: "Client registered successfully!" })
+      setFormData({
+        cpf: "",
+        name: "",
+        phone: "",
+        email: "",
+        address: "",
+        birth_date: "",
+        client_type: "regular",
+      })
+      
+      if (onSuccess) {
+        onSuccess()
       }
-    } catch (error) {
-      setMessage({ type: "error", text: "An unexpected error occurred" })
+    } catch (error: any) {
+      setMessage({ type: "error", text: error.message || "An unexpected error occurred" })
     } finally {
       setLoading(false)
     }

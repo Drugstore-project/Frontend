@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { DashboardHeader } from "@/components/dashboard-header"
-import { StockMovementHistory } from "@/components/stock-movement-history"
-import { StockAdjustment } from "@/components/stock-adjustment"
+import { DashboardHeader } from "@/components/dashboard/dashboard-header"
+import { StockMovementHistory } from "@/components/stock/stock-movement-history"
+import { StockAdjustment } from "@/components/stock/stock-adjustment"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { authService } from "@/lib/auth-service"
 
@@ -19,8 +19,17 @@ export default function StockPage() {
       router.push("/auth/login")
       return
     }
-    setUser({ full_name: "Pharmacist", role: "manager" })
-    setLoading(false)
+    
+    authService.getMe(token)
+      .then(userData => {
+        setUser(userData)
+      })
+      .catch(err => {
+        console.error("Failed to fetch user:", err)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }, [router])
 
   if (loading) {

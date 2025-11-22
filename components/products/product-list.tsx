@@ -22,6 +22,7 @@ interface Product {
   requires_prescription: boolean
   max_quantity_per_sale?: number
   is_active: boolean
+  category?: string
   medication_categories?: {
     name: string
     anvisa_label: string
@@ -35,8 +36,7 @@ interface ProductListProps {
   products: Product[]
 }
 
-export function ProductList({ products: initialProducts }: ProductListProps) {
-  const [products] = useState(initialProducts)
+export function ProductList({ products }: ProductListProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterLabel, setFilterLabel] = useState<string>("all")
 

@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { apiService } from "@/lib/api-service"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,17 +11,14 @@ import { Badge } from "@/components/ui/badge"
 import { Search, Package, AlertTriangle, ShoppingCart } from "lucide-react"
 
 interface Product {
-  id: string
+  id: number
   name: string
   description: string
   price: number
   stock_quantity: number
   category: string
   requires_prescription: boolean
-  suppliers?: {
-    name: string
-    contact_email: string
-  }
+  validity?: string
 }
 
 export function ProductSearch() {
@@ -33,21 +30,22 @@ export function ProductSearch() {
     if (!searchTerm.trim()) return
 
     setIsLoading(true)
-    const supabase = createClient()
-
-    const { data, error } = await supabase
-      .from("products")
-      .select(`
-        *,
-        suppliers (name, contact_email)
-      `)
-      .ilike("name", `%${searchTerm}%`)
-      .order("name")
-
-    if (!error && data) {
-      setProducts(data)
+    try {
+      const allProducts = await apiService.getProducts()
+      
+      // Client-side filtering since backend doesn't support search yet
+      const filtered = allProducts.filter((p: any) => 
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (p.barcode && p.barcode.includes(searchTerm))
+      )
+      
+      setProducts(filtered)
+    } catch (error) {
+      console.error("Failed to search products", error)
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -99,16 +97,14 @@ export function ProductSearch() {
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
                     <div className="flex items-center gap-1">
                       <Package className="h-4 w-4" />
                       <span>Stock: {product.stock_quantity}</span>
                       {product.stock_quantity < 20 && <AlertTriangle className="h-4 w-4 text-orange-500" />}
                     </div>
-                    {product.suppliers && <span>Supplier: {product.suppliers.name}</span>}
-                  </div>
-
-                  <div className="flex gap-2">
+                    {/* Supplier info removed as it is not yet available in backend */}
+                  </div>                  <div className="flex gap-2">
                     {product.stock_quantity > 0 ? (
                       <Button size="sm" className="bg-green-600 hover:bg-green-700">
                         <ShoppingCart className="h-4 w-4 mr-1" />

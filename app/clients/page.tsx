@@ -2,33 +2,67 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { DashboardHeader } from "@/components/dashboard-header"
-import { ClientList } from "@/components/client-list"
-import { ClientRegistration } from "@/components/client-registration"
+import { DashboardHeader } from "@/components/dashboard/dashboard-header"
+import { ClientList } from "@/components/clients/client-list"
+import { ClientRegistration } from "@/components/clients/client-registration"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { authService } from "@/lib/auth-service"
+import { apiService } from "@/lib/api-service"
 
 export default function ClientsPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [clients, setClients] = useState<any[]>([])
+
+  const fetchClients = async () => {
+    try {
+      const allUsers = await apiService.getClients()
+      const mappedClients = allUsers
+        .filter((u: any) => u.client_type || u.role_id === 2) 
+        .map((u: any) => ({
+          id: u.id.toString(),
+          cpf: u.cpf || "",
+          name: u.name,
+          phone: u.phone || "",
+          email: u.email,
+          address: u.address,
+          birth_date: u.birth_date,
+          client_type: u.client_type || "regular",
+          is_active: u.is_active,
+          created_at: new Date().toISOString()
+        }))
+      setClients(mappedClients)
+    } catch (err) {
+      console.error("Failed to fetch clients:", err)
+    }
+  }
 
   useEffect(() => {
-    const token = authService.getToken()
-    if (!token) {
-      router.push("/auth/login")
-      return
+    const fetchData = async () => {
+      const token = authService.getToken()
+      if (!token) {
+        router.push("/auth/login")
+        return
+      }
+      
+      try {
+        const userData = await authService.getMe(token)
+        setUser(userData)
+        await fetchClients()
+      } catch (err) {
+        console.error("Failed to fetch data:", err)
+      } finally {
+        setLoading(false)
+      }
     }
-    setUser({ full_name: "Pharmacist", role: "manager" })
-    setLoading(false)
+
+    fetchData()
   }, [router])
 
   if (loading) {
     return <div>Loading...</div>
   }
-
-  // Mock data
-  const clients: any[] = []
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -51,7 +85,7 @@ export default function ClientsPage() {
           </TabsContent>
 
           <TabsContent value="register" className="space-y-6">
-            <ClientRegistration />
+            <ClientRegistration onSuccess={fetchClients} />
           </TabsContent>
         </Tabs>
       </main>

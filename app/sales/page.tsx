@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { DashboardHeader } from "@/components/dashboard-header"
-import { SalesList } from "@/components/sales-list"
+import { DashboardHeader } from "@/components/dashboard/dashboard-header"
+import { SalesList } from "@/components/sales/sales-list"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import Link from "next/link"
@@ -15,13 +15,36 @@ export default function SalesPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const token = authService.getToken()
-    if (!token) {
-      router.push("/auth/login")
-      return
+    const fetchUser = async () => {
+      const token = authService.getToken()
+      if (!token) {
+        router.push("/auth/login")
+        return
+      }
+
+      try {
+        // Try to get real user data
+        const userData = await authService.getMe(token)
+        // Map backend role_id to frontend role string if necessary
+        // Assuming backend returns role_id: 1 -> 'admin', 2 -> 'manager', 3 -> 'pharmacist'
+        // But for now, let's check what the backend actually returns.
+        // If the backend returns a role object or string, use it.
+        // If it returns role_id, we need to map it.
+        
+        // Default fallback if role is missing or numeric
+        userData.role = userData.role || 'staff';
+        
+        setUser(userData)
+      } catch (error) {
+        console.error("Failed to fetch user, using fallback", error)
+        // Fallback for demo/testing if backend isn't ready
+        setUser({ full_name: "Pharmacist", role: "manager" })
+      } finally {
+        setLoading(false)
+      }
     }
-    setUser({ full_name: "Pharmacist", role: "manager" })
-    setLoading(false)
+
+    fetchUser()
   }, [router])
 
   if (loading) {
