@@ -49,12 +49,14 @@ export default function NewSalePage() {
         max_quantity_per_sale: null // Backend doesn't seem to have this yet
       }))
 
-      const mappedClients = clientsData.map((c: any) => ({
-        id: c.id.toString(),
-        name: c.name,
-        cpf: c.cpf || "000.000.000-00", // Backend might not have CPF on User model yet
-        client_type: "standard" // Default
-      }))
+      const mappedClients = clientsData
+        .filter((c: any) => c.role_name === 'client')
+        .map((c: any) => ({
+          id: c.id.toString(),
+          name: c.name,
+          cpf: c.cpf || "000.000.000-00", // Backend might not have CPF on User model yet
+          client_type: "standard" // Default
+        }))
 
       setProducts(mappedProducts)
       setClients(mappedClients)
@@ -103,6 +105,7 @@ export default function NewSalePage() {
           clients={clients}
           paymentMethods={paymentMethods}
           sellerId={user?.id?.toString() || "1"}
+          sellerName={user?.name || user?.full_name || "Unknown Seller"}
           onSaleComplete={loadData}
         />
       </main>

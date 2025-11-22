@@ -17,6 +17,8 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [products, setProducts] = useState<any[]>([])
+  const [activeTab, setActiveTab] = useState("list")
+  const [editingProduct, setEditingProduct] = useState<any>(null)
 
   const fetchProducts = async () => {
     try {
@@ -33,13 +35,19 @@ export default function ProductsPage() {
         category: p.category || "General",
         anvisa_label: p.stripe || "over-the-counter",
         requires_prescription: p.requires_prescription,
-        expiration_date: p.validity,
-        min_stock_level: 5 // Default value
+        expiration_date: p.next_expiration_date || p.validity, // Use next batch expiration if available
+        next_batch_number: p.next_batch_number,
+        min_stock_level: p.min_stock_level || 10
       })))
     } catch (error: any) {
       console.error("Failed to fetch data", error)
       setError(error.message || "An error occurred while fetching data")
     }
+  }
+
+  const handleEditProduct = (product: any) => {
+    setEditingProduct(product)
+    setActiveTab("register")
   }
 
   useEffect(() => {
@@ -165,6 +173,8 @@ export default function ProductsPage() {
       }
     })
 
+  const canManageProducts = user && ['owner', 'admin', 'manager', 'pharmacist'].includes(user.role);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <DashboardHeader user={user} />
@@ -175,36 +185,54 @@ export default function ProductsPage() {
           <p className="text-gray-600">Manage medications with Anvisa compliance and stock control</p>
         </div>
 
-        <Tabs defaultValue="list" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 max-w-2xl">
+        <Tabs 
+          value={activeTab} 
+          onValueChange={(val) => {
+            if (val === "register") {
+              setEditingProduct(null)
+            }
+            setActiveTab(val)
+          }} 
+          className="space-y-6"
+        >
+          <TabsList className={`grid w-full ${canManageProducts ? 'grid-cols-4' : 'grid-cols-3'} max-w-2xl`}>
             <TabsTrigger value="list">Products</TabsTrigger>
-            <TabsTrigger value="register">Add Product</TabsTrigger>
+            {canManageProducts && (
+              <TabsTrigger value="register">{editingProduct ? "Edit Product" : "Add Product"}</TabsTrigger>
+            )}
             <TabsTrigger value="stock-alerts">Stock Alerts</TabsTrigger>
             <TabsTrigger value="expiration">Expiration</TabsTrigger>
           </TabsList>
 
           <TabsContent value="list" className="space-y-6">
-            <ProductList products={products} />
-          </TabsContent>
-
-          <TabsContent value="register" className="space-y-6">
-            <ProductRegistration 
-              categories={categories} 
-              suppliers={suppliers} 
-              onSuccess={() => {
-                fetchProducts()
-                // Optional: Switch back to list tab if you want
-                // document.querySelector('[value="list"]')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-              }}
+            <ProductList 
+              products={products} 
+              onEdit={canManageProducts ? handleEditProduct : undefined} 
             />
           </TabsContent>
 
+          {canManageProducts && (
+            <TabsContent value="register" className="space-y-6">
+              <ProductRegistration 
+                categories={categories} 
+                suppliers={suppliers} 
+                initialData={editingProduct}
+                key={editingProduct ? editingProduct.id : "new"} // Force re-mount on change
+                onSuccess={() => {
+                  fetchProducts()
+                  setEditingProduct(null)
+                  setActiveTab("list")
+                }}
+              />
+            </TabsContent>
+          )}
+
           <TabsContent value="stock-alerts" className="space-y-6">
-            <StockAlerts products={lowStockProducts} />
+            <StockAlerts products={lowStockProducts} canManage={canManageProducts} />
           </TabsContent>
 
           <TabsContent value="expiration" className="space-y-6">
-            <ExpirationAlerts products={expiringProducts} />
+            <ExpirationAlerts products={expiringProducts} canManage={canManageProducts} />
           </TabsContent>
         </Tabs>
       </main>

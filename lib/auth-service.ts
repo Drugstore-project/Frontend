@@ -12,9 +12,12 @@ export interface User {
   email: string;
   is_active: boolean;
   role: string;
+  isImpersonating?: boolean;
+  originalRole?: string;
 }
 
 export const authService = {
+  // ...existing code...
   async login(username: string, password: string): Promise<LoginResponse> {
     const formData = new URLSearchParams();
     formData.append('username', username);
@@ -36,6 +39,7 @@ export const authService = {
 
       return response.json();
     } catch (error: any) {
+      console.error("Login error details:", error);
       if (error.message === 'Failed to fetch') {
         throw new Error('Unable to connect to server. Please ensure the backend is running on port 8000.');
       }
@@ -82,8 +86,32 @@ export const authService = {
     if (user.email === 'admin@example.com') {
       user.role = 'owner';
     }
+
+    // Handle Impersonation
+    if (typeof window !== 'undefined') {
+      const impersonatedRole = localStorage.getItem('impersonatedRole');
+      if (impersonatedRole) {
+        user.originalRole = user.role;
+        user.role = impersonatedRole;
+        user.isImpersonating = true;
+      }
+    }
     
     return user;
+  },
+
+  impersonateRole(role: string) {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('impersonatedRole', role);
+      window.location.reload(); // Reload to apply changes
+    }
+  },
+
+  stopImpersonating() {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('impersonatedRole');
+      window.location.reload(); // Reload to apply changes
+    }
   },
   
   // Helper to store token (in a real app, use httpOnly cookies via server actions or middleware)

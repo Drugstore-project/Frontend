@@ -2,7 +2,7 @@ const API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://127.0.0.1:800
 
 export const apiService = {
   async getProducts() {
-    const response = await fetch(`${API_URL}/products/`);
+    const response = await fetch(`${API_URL}/products/`, { cache: 'no-store' });
     if (!response.ok) throw new Error('Failed to fetch products');
     return response.json();
   },
@@ -97,7 +97,7 @@ export const apiService = {
   },
 
   async getOrders() {
-    const response = await fetch(`${API_URL}/orders/`);
+    const response = await fetch(`${API_URL}/orders/`, { cache: 'no-store' });
     if (!response.ok) throw new Error('Failed to fetch orders');
     return response.json();
   },
@@ -108,7 +108,7 @@ export const apiService = {
     // Backend expects: OrderCreate schema
     
     const payload = {
-      user_id: orderData.client_id ? parseInt(orderData.client_id) : null, // Assuming client_id is user_id
+      user_id: orderData.client_id ? parseInt(orderData.client_id) : null, // Send null if no client selected
       items: orderData.items.map((item: any) => ({
         product_id: parseInt(item.product_id),
         quantity: item.quantity,
@@ -129,6 +129,62 @@ export const apiService = {
         const error = await response.json();
         throw new Error(error.detail || 'Failed to create order');
     }
+    return response.json();
+  },
+
+  async getDashboardStats() {
+    const response = await fetch(`${API_URL}/reports/dashboard`, { cache: 'no-store' });
+    if (!response.ok) throw new Error('Failed to fetch dashboard stats');
+    return response.json();
+  },
+
+  async getAnalytics() {
+    const response = await fetch(`${API_URL}/reports/analytics`, { cache: 'no-store' });
+    if (!response.ok) throw new Error('Failed to fetch analytics');
+    return response.json();
+  },
+
+  async getSupplierOrders() {
+    const response = await fetch(`${API_URL}/supplier-orders/`, { cache: 'no-store' });
+    if (!response.ok) throw new Error('Failed to fetch supplier orders');
+    return response.json();
+  },
+
+  async createSupplierOrder(orderData: any) {
+    const response = await fetch(`${API_URL}/supplier-orders/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(orderData),
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to create supplier order');
+    }
+    return response.json();
+  },
+
+  async receiveSupplierOrder(orderId: string, batchData: { batch_number: string, expiration_date: string }) {
+    const response = await fetch(`${API_URL}/supplier-orders/${orderId}/receive`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(batchData),
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to receive order');
+    }
+    return response.json();
+  },
+
+  async getProductBatches(productId: string) {
+    const response = await fetch(`${API_URL}/products/${productId}/batches`, { cache: 'no-store' });
+    if (!response.ok) throw new Error('Failed to fetch product batches');
     return response.json();
   }
 };

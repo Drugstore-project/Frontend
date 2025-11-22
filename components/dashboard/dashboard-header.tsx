@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Pill, LogOut, Settings, User, Menu, X, ShoppingCart } from "lucide-react"
+import { Pill, LogOut, Settings, User, Menu, X, ShoppingCart, Eye, EyeOff } from "lucide-react"
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -21,6 +21,8 @@ interface DashboardHeaderProps {
     full_name?: string
     email?: string
     role?: string
+    isImpersonating?: boolean
+    originalRole?: string
   } | null
 }
 
@@ -32,6 +34,14 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
   const handleSignOut = async () => {
     authService.logout()
     router.push("/auth/login")
+  }
+
+  const handleImpersonate = (role: string) => {
+    authService.impersonateRole(role)
+  }
+
+  const handleStopImpersonating = () => {
+    authService.stopImpersonating()
   }
 
   const initials =
@@ -46,7 +56,10 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     { href: "/sales", label: "Sales", icon: ShoppingCart },
     { href: "/products", label: "Products" },
     ...(user?.role && ["manager", "owner"].includes(user.role)
-      ? [{ href: "/clients", label: "Clients" }]
+      ? [
+          { href: "/clients", label: "Clients" },
+          { href: "/admin/staff", label: "Staff", icon: User }
+        ]
       : []),
     ...(user?.role === "owner" ? [{ href: "/admin", label: "Admin" }] : []),
   ]
@@ -115,6 +128,39 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </DropdownMenuItem>
+                
+                {user?.isImpersonating ? (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      className="cursor-pointer text-amber-600 focus:text-amber-700 focus:bg-amber-50"
+                      onClick={handleStopImpersonating}
+                    >
+                      <EyeOff className="mr-2 h-4 w-4" />
+                      Stop Impersonating
+                    </DropdownMenuItem>
+                  </>
+                ) : user?.role === 'owner' ? (
+                  <>
+                    <DropdownMenuSeparator />
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                      Impersonate Role
+                    </div>
+                    <DropdownMenuItem onClick={() => handleImpersonate('manager')} className="cursor-pointer">
+                      <Eye className="mr-2 h-4 w-4" />
+                      Manager
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleImpersonate('pharmacist')} className="cursor-pointer">
+                      <Eye className="mr-2 h-4 w-4" />
+                      Pharmacist
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleImpersonate('seller')} className="cursor-pointer">
+                      <Eye className="mr-2 h-4 w-4" />
+                      Seller
+                    </DropdownMenuItem>
+                  </>
+                ) : null}
+
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50">
                   <LogOut className="mr-2 h-4 w-4" />

@@ -130,7 +130,7 @@ export function SalesList({ sales }: SalesListProps) {
                           <span>
                             {sale.clients
                               ? `${sale.clients.name} (${formatCPF(sale.clients.cpf)})`
-                              : "Walk-in Customer"}
+                              : "Unspecified User"}
                           </span>
                         </div>
 
@@ -186,7 +186,7 @@ export function SalesList({ sales }: SalesListProps) {
                                 <strong>Client:</strong>{" "}
                                 {sale.clients
                                   ? `${sale.clients.name} (${formatCPF(sale.clients.cpf)})`
-                                  : "Walk-in Customer"}
+                                  : "Unspecified User"}
                               </div>
                               <div className="text-sm">
                                 <strong>Seller:</strong> {sale.profiles?.full_name || "Unknown"}

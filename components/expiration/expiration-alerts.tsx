@@ -15,9 +15,10 @@ interface ExpiringProduct {
 
 interface ExpirationAlertsProps {
   products: ExpiringProduct[]
+  canManage?: boolean
 }
 
-export function ExpirationAlerts({ products }: ExpirationAlertsProps) {
+export function ExpirationAlerts({ products, canManage = true }: ExpirationAlertsProps) {
   const expiredProducts = products.filter((p) => p.days_until_expiration <= 0)
   const expiringSoonProducts = products.filter((p) => p.days_until_expiration > 0 && p.days_until_expiration <= 30)
 
@@ -85,10 +86,12 @@ export function ExpirationAlerts({ products }: ExpirationAlertsProps) {
                                 </Badge>
                               </div>
                             </div>
-                            <Button size="sm" variant="destructive">
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Remove from Sale
-                            </Button>
+                            {canManage && (
+                              <Button size="sm" variant="destructive">
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Remove from Sale
+                              </Button>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
@@ -118,22 +121,24 @@ export function ExpirationAlerts({ products }: ExpirationAlertsProps) {
                                 </Badge>
                               </div>
                             </div>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-orange-300 text-orange-700 hover:bg-orange-100 bg-transparent"
-                              >
-                                Mark for Discount
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-orange-300 text-orange-700 hover:bg-orange-100 bg-transparent"
-                              >
-                                Contact Supplier
-                              </Button>
-                            </div>
+                            {canManage && (
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-orange-300 text-orange-700 hover:bg-orange-100 bg-transparent"
+                                >
+                                  Mark for Discount
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-orange-300 text-orange-700 hover:bg-orange-100 bg-transparent"
+                                >
+                                  Contact Supplier
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </CardContent>
                       </Card>

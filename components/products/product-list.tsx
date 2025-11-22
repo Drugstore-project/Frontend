@@ -6,7 +6,15 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Search, Edit, Package, AlertTriangle, Calendar, Barcode } from "lucide-react"
+import { Search, Edit, Package, AlertTriangle, Calendar, Barcode, Layers } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { apiService } from "@/lib/api-service"
 
 interface Product {
   id: string
@@ -18,6 +26,7 @@ interface Product {
   min_stock_level: number
   expiration_date: string
   batch_number?: string
+  next_batch_number?: string
   anvisa_label: string
   requires_prescription: boolean
   max_quantity_per_sale?: number
@@ -34,11 +43,29 @@ interface Product {
 
 interface ProductListProps {
   products: Product[]
+  onEdit?: (product: Product) => void
 }
 
-export function ProductList({ products }: ProductListProps) {
+export function ProductList({ products, onEdit }: ProductListProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterLabel, setFilterLabel] = useState<string>("all")
+  const [selectedProductBatches, setSelectedProductBatches] = useState<any[]>([])
+  const [isBatchDialogOpen, setIsBatchDialogOpen] = useState(false)
+  const [loadingBatches, setLoadingBatches] = useState(false)
+
+  const handleViewBatches = async (productId: string) => {
+    setLoadingBatches(true)
+    setIsBatchDialogOpen(true)
+    try {
+      const batches = await apiService.getProductBatches(productId)
+      setSelectedProductBatches(batches)
+    } catch (e) {
+      console.error("Failed to fetch batches", e)
+      setSelectedProductBatches([])
+    } finally {
+      setLoadingBatches(false)
+    }
+  }
 
   const filteredProducts = products.filter((product) => {
     const matchesSearch =
@@ -193,9 +220,15 @@ export function ProductList({ products }: ProductListProps) {
                           <div className="space-y-1">
                             <div className="flex items-center gap-1 text-gray-600">
                               <Calendar className="h-3 w-3" />
-                              <span>Expires: {new Date(product.expiration_date).toLocaleDateString()}</span>
+                              <span className={expiringSoon ? "text-orange-600 font-medium" : ""}>
+                                Expires: {new Date(product.expiration_date).toLocaleDateString()}
+                              </span>
                             </div>
-                            {product.batch_number && <div className="text-gray-600">Batch: {product.batch_number}</div>}
+                            {product.next_batch_number && (
+                                <div className="text-xs text-gray-500 ml-4">
+                                    Next Batch: <span className="font-mono">{product.next_batch_number}</span>
+                                </div>
+                            )}
                           </div>
 
                           <div className="space-y-1">
@@ -242,7 +275,19 @@ export function ProductList({ products }: ProductListProps) {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewBatches(product.id)}
+                          title="View Batches"
+                        >
+                          <Layers className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => onEdit && onEdit(product)}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
                       </div>
@@ -252,6 +297,39 @@ export function ProductList({ products }: ProductListProps) {
               })
             )}
           </div>
+
+          <Dialog open={isBatchDialogOpen} onOpenChange={setIsBatchDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Product Batches</DialogTitle>
+                <DialogDescription>
+                  List of all batches for this product.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                {loadingBatches ? (
+                  <div className="text-center">Loading batches...</div>
+                ) : selectedProductBatches.length === 0 ? (
+                  <div className="text-center text-gray-500">No batches found for this product.</div>
+                ) : (
+                  <div className="space-y-4">
+                    {selectedProductBatches.map((batch: any) => (
+                      <div key={batch.id} className="flex justify-between items-center p-3 border rounded bg-gray-50">
+                        <div>
+                          <div className="font-medium">Batch: {batch.batch_number}</div>
+                          <div className="text-sm text-gray-500">Expires: {new Date(batch.expiration_date).toLocaleDateString()}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold">{batch.quantity} units</div>
+                          <div className="text-xs text-gray-400">Received: {new Date(batch.created_at).toLocaleDateString()}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
         </CardContent>
       </Card>
     </div>

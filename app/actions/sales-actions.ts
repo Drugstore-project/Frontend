@@ -18,7 +18,8 @@ export async function createSale(saleData: {
   try {
     // Map frontend data to backend OrderCreate schema
     const payload = {
-      user_id: saleData.client_id ? parseInt(saleData.client_id) : 1, // Default to user 1 (Admin) if no client selected
+      user_id: saleData.client_id ? parseInt(saleData.client_id) : null, // Send null if no client selected
+      seller_id: saleData.seller_id ? parseInt(saleData.seller_id) : null,
       payment_method: saleData.payment_method_id,
       status: "paid", // Assuming immediate payment
       items: saleData.items.map((item) => ({

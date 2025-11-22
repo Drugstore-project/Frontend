@@ -45,7 +45,7 @@ export function QuickActions({ userRole }: QuickActionsProps) {
         </Button>
 
         <Button asChild className="w-full justify-start" variant="outline">
-          <Link href="/reports">
+          <Link href="/sales">
             <BarChart3 className="h-4 w-4 mr-2" />
             Sales Reports
           </Link>

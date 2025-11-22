@@ -42,14 +42,14 @@ export default function DashboardPage() {
           apiService.getClients()
         ])
         
-        // Process Low Stock (threshold 10)
+        // Process Low Stock (threshold dynamic)
         const lowStock = products
-          .filter((p: any) => p.stock_quantity <= 10)
+          .filter((p: any) => p.stock_quantity <= (p.min_stock_level || 10))
           .map((p: any) => ({
             product_id: p.id.toString(),
             product_name: p.name,
             current_stock: p.stock_quantity,
-            min_stock_level: 10
+            min_stock_level: p.min_stock_level || 10
           }))
         setLowStockProducts(lowStock)
 

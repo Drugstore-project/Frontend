@@ -1,6 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { Trash2 } from "lucide-react"
+import { deleteStaffMember } from "@/app/actions/staff-actions"
+import { useRouter } from "next/navigation"
 
 interface Staff {
   id: string
@@ -15,6 +19,17 @@ interface StaffActivityProps {
 }
 
 export function StaffActivity({ staff }: StaffActivityProps) {
+  const router = useRouter()
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to remove this staff member?")) {
+      await deleteStaffMember(id)
+      router.refresh()
+      // In a real app, we might want to update local state or trigger a refresh callback
+      window.location.reload() 
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -45,9 +60,21 @@ export function StaffActivity({ staff }: StaffActivityProps) {
                       <p className="text-sm text-gray-600">{member.email}</p>
                     </div>
                   </div>
-                  <Badge variant={member.role === "admin" ? "default" : "secondary"} className="capitalize">
-                    {member.role}
-                  </Badge>
+                  <div className="flex items-center gap-4">
+                    <Badge variant={member.role === "admin" ? "default" : "secondary"} className="capitalize">
+                      {member.role}
+                    </Badge>
+                    {member.role !== "admin" && member.role !== "owner" && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleDelete(member.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )
             })}

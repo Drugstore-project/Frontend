@@ -62,10 +62,11 @@ interface SalesInterfaceProps {
   clients: Client[]
   paymentMethods: PaymentMethod[]
   sellerId: string
+  sellerName?: string
   onSaleComplete?: () => void
 }
 
-export function SalesInterface({ products, clients, paymentMethods, sellerId, onSaleComplete }: SalesInterfaceProps) {
+export function SalesInterface({ products, clients, paymentMethods, sellerId, sellerName, onSaleComplete }: SalesInterfaceProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [saleItems, setSaleItems] = useState<SaleItem[]>([])
@@ -328,6 +329,25 @@ export function SalesInterface({ products, clients, paymentMethods, sellerId, on
 
       {/* Sale Summary and Checkout */}
       <div className="space-y-6">
+        {/* Seller Info */}
+        <Card className="bg-blue-50 border-blue-200">
+          <CardContent className="py-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="bg-blue-100 p-2 rounded-full">
+                <FileText className="h-4 w-4 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider">Salesperson</p>
+                <p className="font-medium text-blue-900">{sellerName || "Unknown"}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider">Date</p>
+              <p className="font-medium text-blue-900">{new Date().toLocaleDateString()}</p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Client Selection */}
         <Card>
           <CardHeader>

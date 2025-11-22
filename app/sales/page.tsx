@@ -8,14 +8,16 @@ import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import Link from "next/link"
 import { authService } from "@/lib/auth-service"
+import { apiService } from "@/lib/api-service"
 
 export default function SalesPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [sales, setSales] = useState<any[]>([])
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchData = async () => {
       const token = authService.getToken()
       if (!token) {
         router.push("/auth/login")
@@ -23,36 +25,56 @@ export default function SalesPage() {
       }
 
       try {
-        // Try to get real user data
         const userData = await authService.getMe(token)
-        // Map backend role_id to frontend role string if necessary
-        // Assuming backend returns role_id: 1 -> 'admin', 2 -> 'manager', 3 -> 'pharmacist'
-        // But for now, let's check what the backend actually returns.
-        // If the backend returns a role object or string, use it.
-        // If it returns role_id, we need to map it.
-        
-        // Default fallback if role is missing or numeric
         userData.role = userData.role || 'staff';
-        
         setUser(userData)
+
+        const ordersData = await apiService.getOrders()
+        
+        const mappedSales = ordersData.map((order: any) => ({
+          id: order.id.toString(),
+          invoice_number: order.id.toString().padStart(6, '0'),
+          total_amount: order.total_value,
+          discount_amount: 0,
+          final_amount: order.total_value,
+          sale_date: order.created_at,
+          prescription_required: order.items.some((item: any) => item.product?.requires_prescription),
+          clients: order.user ? {
+            name: order.user.name,
+            cpf: order.user.cpf || "N/A"
+          } : undefined,
+          profiles: {
+            full_name: "Staff" // Backend doesn't track seller yet
+          },
+          payment_methods: {
+            name: order.payment_method || "Cash"
+          },
+          sale_items: order.items.map((item: any) => ({
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            total_price: item.quantity * item.unit_price,
+            discount_applied: 0,
+            products: {
+              name: item.product?.name || "Unknown Product",
+              anvisa_label: item.product?.stripe || "over-the-counter"
+            }
+          }))
+        }))
+        
+        setSales(mappedSales)
       } catch (error) {
-        console.error("Failed to fetch user, using fallback", error)
-        // Fallback for demo/testing if backend isn't ready
-        setUser({ full_name: "Pharmacist", role: "manager" })
+        console.error("Failed to fetch data", error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchUser()
+    fetchData()
   }, [router])
 
   if (loading) {
     return <div>Loading...</div>
   }
-
-  // Mock data
-  const sales: any[] = []
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { createProduct } from "@/app/actions/product-actions"
+import { createProduct, updateProduct } from "@/app/actions/product-actions"
 import { AlertCircle, CheckCircle2, Shield, AlertTriangle } from "lucide-react"
 
 interface Category {
@@ -31,23 +31,24 @@ interface ProductRegistrationProps {
   categories: Category[]
   suppliers: Supplier[]
   onSuccess?: () => void
+  initialData?: any
 }
 
-export function ProductRegistration({ categories, suppliers, onSuccess }: ProductRegistrationProps) {
+export function ProductRegistration({ categories, suppliers, onSuccess, initialData }: ProductRegistrationProps) {
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    barcode: "",
-    price: "",
-    stock_quantity: "",
-    min_stock_level: "10",
-    category_id: "",
-    supplier_id: "",
-    expiration_date: "",
-    batch_number: "",
-    anvisa_label: "over-the-counter",
-    requires_prescription: false,
-    max_quantity_per_sale: "",
+    name: initialData?.name || "",
+    description: initialData?.description || "",
+    barcode: initialData?.barcode || "",
+    price: initialData?.price?.toString() || "",
+    stock_quantity: initialData?.stock_quantity?.toString() || "",
+    min_stock_level: initialData?.min_stock_level?.toString() || "10",
+    category_id: initialData?.category || "",
+    supplier_id: initialData?.supplier_id || "",
+    expiration_date: initialData?.expiration_date ? new Date(initialData.expiration_date).toISOString().split('T')[0] : "",
+    batch_number: initialData?.batch_number || "",
+    anvisa_label: initialData?.anvisa_label || "over-the-counter",
+    requires_prescription: initialData?.requires_prescription || false,
+    max_quantity_per_sale: initialData?.max_quantity_per_sale?.toString() || "",
   })
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
@@ -113,36 +114,45 @@ export function ProductRegistration({ categories, suppliers, onSuccess }: Produc
     }
 
     try {
-      const result = await createProduct({
+      const payload = {
         ...formData,
         price: Number.parseFloat(formData.price),
         stock_quantity: Number.parseInt(formData.stock_quantity) || 0,
         min_stock_level: Number.parseInt(formData.min_stock_level) || 10,
         max_quantity_per_sale: formData.max_quantity_per_sale ? Number.parseInt(formData.max_quantity_per_sale) : null,
-      })
+      }
+
+      let result
+      if (initialData && initialData.id) {
+        result = await updateProduct(initialData.id, payload)
+      } else {
+        result = await createProduct(payload)
+      }
 
       if (result.success) {
-        setMessage({ type: "success", text: "Product registered successfully!" })
-        setFormData({
-          name: "",
-          description: "",
-          barcode: "",
-          price: "",
-          stock_quantity: "",
-          min_stock_level: "10",
-          category_id: "",
-          supplier_id: "",
-          expiration_date: "",
-          batch_number: "",
-          anvisa_label: "over-the-counter",
-          requires_prescription: false,
-          max_quantity_per_sale: "",
-        })
+        setMessage({ type: "success", text: initialData ? "Product updated successfully!" : "Product registered successfully!" })
+        if (!initialData) {
+          setFormData({
+            name: "",
+            description: "",
+            barcode: "",
+            price: "",
+            stock_quantity: "",
+            min_stock_level: "10",
+            category_id: "",
+            supplier_id: "",
+            expiration_date: "",
+            batch_number: "",
+            anvisa_label: "over-the-counter",
+            requires_prescription: false,
+            max_quantity_per_sale: "",
+          })
+        }
         if (onSuccess) {
           onSuccess()
         }
       } else {
-        setMessage({ type: "error", text: result.error || "Failed to register product" })
+        setMessage({ type: "error", text: result.error || (initialData ? "Failed to update product" : "Failed to register product") })
       }
     } catch (error) {
       setMessage({ type: "error", text: "An unexpected error occurred" })
@@ -156,9 +166,11 @@ export function ProductRegistration({ categories, suppliers, onSuccess }: Produc
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Shield className="h-5 w-5" />
-          Register New Medication
+          {initialData ? "Edit Medication" : "Register New Medication"}
         </CardTitle>
-        <CardDescription>Add a new medication to inventory with Anvisa compliance and stock control</CardDescription>
+        <CardDescription>
+          {initialData ? "Update medication details" : "Add a new medication to inventory with Anvisa compliance and stock control"}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -339,7 +351,7 @@ export function ProductRegistration({ categories, suppliers, onSuccess }: Produc
               </div>
             </div>
 
-            {formData.max_quantity_per_sale && (
+            {selectedCategory && (
               <div className="space-y-2">
                 <Label htmlFor="max_quantity_per_sale">Max Quantity Per Sale</Label>
                 <Input
@@ -368,7 +380,7 @@ export function ProductRegistration({ categories, suppliers, onSuccess }: Produc
           )}
 
           <Button type="submit" disabled={loading} className="w-full">
-            {loading ? "Registering..." : "Register Medication"}
+            {loading ? (initialData ? "Updating..." : "Registering...") : (initialData ? "Update Medication" : "Register Medication")}
           </Button>
         </form>
       </CardContent>
