@@ -25,7 +25,7 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      const response = await authService.login(email, password)
+      const response = await authService.login(email.trim(), password.trim())
       authService.setToken(response.access_token)
       router.push("/sales")
     } catch (error: unknown) {
