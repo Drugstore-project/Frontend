@@ -374,7 +374,7 @@ export function ProductList({ products, onEdit, onDelete }: ProductListProps) {
               <DialogHeader>
                 <DialogTitle>Delete Product</DialogTitle>
                 <DialogDescription>
-                  Are you sure you want to delete <strong>{productToDelete?.name}</strong>? This action cannot be undone.
+                  Are you sure you want to delete <strong>{productToDelete?.name}</strong> (ID: {productToDelete?.id})? This action cannot be undone.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
