@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://127.0.0.1:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://127.0.0.1:8000';
 
 export async function createSale(saleData: {
   client_id?: string | null
