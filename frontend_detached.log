@@ -874,3 +874,15 @@ Backend response status: 200
  GET /admin 200 in 126ms
  GET /admin 200 in 295ms
  GET /dashboard 200 in 395ms
+  ▲ Next.js 14.2.25
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 7.7s
+  ▲ Next.js 14.2.25
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 4.3s
