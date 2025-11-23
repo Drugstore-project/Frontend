@@ -916,3 +916,4 @@ Backend response status: 200
  ✓ Compiled /products in 1787ms (869 modules)
  POST /products 200 in 123ms
  POST /products 200 in 53ms
+ ✓ Compiled in 2.9s (869 modules)

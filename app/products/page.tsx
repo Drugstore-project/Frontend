@@ -180,34 +180,9 @@ export default function ProductsPage() {
       <DashboardHeader user={user} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8 flex justify-between items-end">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Product Management ({products.length})</h1>
-            <p className="text-gray-600">Manage medications with Anvisa compliance and stock control</p>
-          </div>
-          <button 
-            onClick={fetchProducts}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-          >
-            Refresh List
-          </button>
-          <button 
-            onClick={async () => {
-                try {
-                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/debug/db-content`);
-                    const data = await res.json();
-                    alert(JSON.stringify(data, null, 2));
-                } catch (e: any) {
-                    alert("Debug failed: " + e.message);
-                }
-            }}
-            className="text-red-600 hover:text-red-800 text-sm font-medium ml-4"
-          >
-            Debug DB
-          </button>
-          <div className="text-xs text-gray-400 ml-4">
-            API: {process.env.NEXT_PUBLIC_API_URL || 'Local default'}
-          </div>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Product Management</h1>
+          <p className="text-gray-600">Manage medications with Anvisa compliance and stock control</p>
         </div>
 
         <Tabs 
