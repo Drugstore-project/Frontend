@@ -23,9 +23,10 @@ export async function createSale(saleData: {
       payment_method: saleData.payment_method_id,
       status: "paid", // Assuming immediate payment
       items: saleData.items.map((item) => ({
-        product_id: parseInt(item.product_id),
+        product_id: Number(item.product_id),
         quantity: item.quantity,
-        unit_price: item.unit_price
+        unit_price: item.unit_price,
+        batch_id: item.batch_id ? Number(item.batch_id) : null
       }))
     };
 

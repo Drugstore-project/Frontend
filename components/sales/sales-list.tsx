@@ -39,6 +39,7 @@ interface Sale {
     unit_price: number
     total_price: number
     discount_applied: number
+    batch_number?: string
     products: {
       name: string
       anvisa_label: string
@@ -214,6 +215,11 @@ export function SalesList({ sales }: SalesListProps) {
                                     </div>
                                     <div className="text-xs text-gray-500">
                                       {item.quantity} x R$ {item.unit_price.toFixed(2)}
+                                      {item.batch_number && (
+                                        <span className="ml-2 text-gray-400">
+                                          (Batch: {item.batch_number})
+                                        </span>
+                                      )}
                                       {item.discount_applied > 0 && (
                                         <span className="text-green-600 ml-1">
                                           (-R$ {item.discount_applied.toFixed(2)})

@@ -54,6 +54,7 @@ export default function SalesPage() {
             unit_price: item.unit_price,
             total_price: item.quantity * item.unit_price,
             discount_applied: 0,
+            batch_number: item.batch?.batch_number,
             products: {
               name: item.product?.name || "Unknown Product",
               anvisa_label: item.product?.stripe || "over-the-counter"

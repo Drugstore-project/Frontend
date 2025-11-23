@@ -112,7 +112,8 @@ export const apiService = {
       items: orderData.items.map((item: any) => ({
         product_id: parseInt(item.product_id),
         quantity: item.quantity,
-        unit_price: item.unit_price
+        unit_price: item.unit_price,
+        batch_id: item.batch_id ? parseInt(item.batch_id) : null
       })),
       payment_method: orderData.payment_method_id
     };

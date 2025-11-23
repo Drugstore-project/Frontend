@@ -1091,3 +1091,118 @@ Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supab
 
 Import trace for requested module:
 ./app/actions/client-actions.ts
+ ⚠ ./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts
+
+./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts
+
+./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts
+
+./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts
+ ⚠ ./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts
+
+./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts
+
+./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts
+
+./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts
+ ⚠ ./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts
+
+./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts
+
+./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts
+
+./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts
+ ⚠ ./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts
+
+./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts
+
+./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts
+
+./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts
+ ⚠ ./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts
+
+./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts
+
+./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts
+
+./app/actions/client-actions.ts
+Attempted import error: 'createSupabaseClient' is not exported from '@/lib/supabase/server' (imported as 'createSupabaseClient').
+
+Import trace for requested module:
+./app/actions/client-actions.ts

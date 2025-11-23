@@ -140,3 +140,52 @@
  ○ Compiling /sales ...
  ✓ Compiled /sales in 1288ms (1071 modules)
  ○ Compiling /clients ...
+ ✓ Compiled /clients in 2s (2258 modules)
+ ✓ Compiled in 1780ms (2258 modules)
+ ○ Compiling /sales/new ...
+ ✓ Compiled /sales/new in 2.4s (2264 modules)
+Sending payload to backend: {
+  "user_id": null,
+  "seller_id": 1,
+  "payment_method": "cash",
+  "status": "paid",
+  "items": [
+    {
+      "product_id": 3,
+      "quantity": 2,
+      "unit_price": 1231251
+    }
+  ]
+}
+Backend response status: 200
+ POST /sales/new 200 in 148ms
+Sending payload to backend: {
+  "user_id": 4,
+  "seller_id": 1,
+  "payment_method": "credit_card",
+  "status": "paid",
+  "items": [
+    {
+      "product_id": 7,
+      "quantity": 1,
+      "unit_price": 6
+    }
+  ]
+}
+Backend response status: 200
+ POST /sales/new 200 in 121ms
+ ✓ Compiled in 2.7s (2273 modules)
+ ✓ Compiled in 1081ms (2273 modules)
+ ✓ Compiled in 1126ms (2273 modules)
+ ✓ Compiled in 1384ms (2273 modules)
+ GET /sales/new 200 in 310ms
+ GET /sales/new 200 in 88ms
+ ○ Compiling /clients ...
+ POST /admin/staff 200 in 122ms
+ POST /admin/staff 200 in 60ms
+ POST /admin/staff 200 in 107ms
+ POST /admin/staff 200 in 57ms
+ ✓ Compiled /auth/login in 2.8s (2258 modules)
+ ✓ Compiled in 1860ms (2258 modules)
+ ✓ Compiled in 1113ms (2260 modules)
+ ✓ Compiled in 4.2s (2260 modules)

@@ -17,8 +17,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
+import { apiService } from "@/lib/api-service"
 import { createSale } from "@/app/actions/sales-actions"
-import { Search, Plus, Minus, Trash2, Receipt, AlertTriangle, FileText, ShoppingCart } from "lucide-react"
+import { Search, Plus, Minus, Trash2, Receipt, AlertTriangle, FileText, ShoppingCart, Package } from "lucide-react"
 
 interface Product {
   id: string
@@ -55,6 +56,15 @@ interface SaleItem {
   unit_price: number
   total_price: number
   discount_applied: number
+  batch_id?: string
+  batch_number?: string
+}
+
+interface Batch {
+  id: string
+  batch_number: string
+  quantity: number
+  expiration_date: string
 }
 
 interface SalesInterfaceProps {
@@ -76,6 +86,9 @@ export function SalesInterface({ products, clients, paymentMethods, sellerId, se
   const [receiptData, setReceiptData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [selectedProductForBatch, setSelectedProductForBatch] = useState<Product | null>(null)
+  const [availableBatches, setAvailableBatches] = useState<Batch[]>([])
+  const [showBatchDialog, setShowBatchDialog] = useState(false)
 
   const filteredProducts = products.filter(
     (product) => product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.barcode.includes(searchTerm),
@@ -104,11 +117,11 @@ export function SalesInterface({ products, clients, paymentMethods, sellerId, se
     return (product.price * quantity * discountPercentage) / 100
   }
 
-  const addToSale = (product: Product) => {
-    const existingItem = saleItems.find((item) => item.product.id === product.id)
+  const addToSale = (product: Product, batch?: Batch) => {
+    const existingItem = saleItems.find((item) => item.product.id === product.id && item.batch_id === batch?.id)
 
     if (existingItem) {
-      updateQuantity(product.id, existingItem.quantity + 1)
+      updateQuantity(product.id, existingItem.quantity + 1, batch?.id)
     } else {
       const quantity = 1
       const unit_price = product.price
@@ -123,20 +136,22 @@ export function SalesInterface({ products, clients, paymentMethods, sellerId, se
           unit_price,
           total_price,
           discount_applied,
+          batch_id: batch?.id,
+          batch_number: batch?.batch_number
         },
       ])
     }
   }
 
-  const updateQuantity = (productId: string, newQuantity: number) => {
+  const updateQuantity = (productId: string, newQuantity: number, batchId?: string) => {
     if (newQuantity <= 0) {
-      removeFromSale(productId)
+      removeFromSale(productId, batchId)
       return
     }
 
     setSaleItems(
       saleItems.map((item) => {
-        if (item.product.id === productId) {
+        if (item.product.id === productId && item.batch_id === batchId) {
           // Check max quantity per sale for controlled substances
           if (item.product.max_quantity_per_sale && newQuantity > item.product.max_quantity_per_sale) {
             setMessage({
@@ -170,8 +185,21 @@ export function SalesInterface({ products, clients, paymentMethods, sellerId, se
     )
   }
 
-  const removeFromSale = (productId: string) => {
-    setSaleItems(saleItems.filter((item) => item.product.id !== productId))
+  const removeFromSale = (productId: string, batchId?: string) => {
+    setSaleItems(saleItems.filter((item) => !(item.product.id === productId && item.batch_id === batchId)))
+  }
+
+  const handleSelectBatch = async (product: Product) => {
+    try {
+      const batches = await apiService.getProductBatches(product.id)
+      setAvailableBatches(batches)
+      setSelectedProductForBatch(product)
+      setShowBatchDialog(true)
+    } catch (error) {
+      console.error("Failed to fetch batches", error)
+      // Fallback to adding without batch (FIFO)
+      addToSale(product)
+    }
   }
 
   // Recalculate discounts when client changes
@@ -221,6 +249,7 @@ export function SalesInterface({ products, clients, paymentMethods, sellerId, se
           unit_price: item.unit_price,
           total_price: item.total_price,
           discount_applied: item.discount_applied,
+          batch_id: item.batch_id
         })),
         total_amount: subtotal,
         discount_amount: totalDiscount,
@@ -243,8 +272,9 @@ export function SalesInterface({ products, clients, paymentMethods, sellerId, se
       } else {
         setMessage({ type: "error", text: result.error || "Failed to complete sale" })
       }
-    } catch (error) {
-      setMessage({ type: "error", text: "An unexpected error occurred" })
+    } catch (error: any) {
+      console.error("Sale error:", error)
+      setMessage({ type: "error", text: error.message || "An unexpected error occurred" })
     } finally {
       setLoading(false)
     }
@@ -316,9 +346,14 @@ export function SalesInterface({ products, clients, paymentMethods, sellerId, se
                         R$ {product.price.toFixed(2)} • Stock: {product.stock_quantity} units
                       </div>
                     </div>
-                    <Button size="sm" onClick={() => addToSale(product)} disabled={product.stock_quantity === 0}>
-                      <Plus className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => handleSelectBatch(product)} disabled={product.stock_quantity === 0}>
+                        <Package className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" onClick={() => addToSale(product)} disabled={product.stock_quantity === 0}>
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -403,9 +438,16 @@ export function SalesInterface({ products, clients, paymentMethods, sellerId, se
             ) : (
               <div className="space-y-4">
                 {saleItems.map((item) => (
-                  <div key={item.product.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div key={`${item.product.id}-${item.batch_id || 'default'}`} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex-1">
-                      <div className="font-medium">{item.product.name}</div>
+                      <div className="font-medium">
+                        {item.product.name}
+                        {item.batch_number && (
+                          <Badge variant="outline" className="ml-2 text-xs">
+                            Batch: {item.batch_number}
+                          </Badge>
+                        )}
+                      </div>
                       <div className="text-sm text-gray-600">
                         R$ {item.unit_price.toFixed(2)} each
                         {item.discount_applied > 0 && (
@@ -417,7 +459,7 @@ export function SalesInterface({ products, clients, paymentMethods, sellerId, se
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                        onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.batch_id)}
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
@@ -425,14 +467,14 @@ export function SalesInterface({ products, clients, paymentMethods, sellerId, se
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                        onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.batch_id)}
                       >
                         <Plus className="h-3 w-3" />
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => removeFromSale(item.product.id)}
+                        onClick={() => removeFromSale(item.product.id, item.batch_id)}
                         className="text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="h-3 w-3" />
@@ -604,6 +646,42 @@ export function SalesInterface({ products, clients, paymentMethods, sellerId, se
               Print Receipt
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Batch Selection Dialog */}
+      <Dialog open={showBatchDialog} onOpenChange={setShowBatchDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Select Batch</DialogTitle>
+            <DialogDescription>
+              Select a specific batch for {selectedProductForBatch?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {availableBatches.length === 0 ? (
+              <div className="text-center py-4 text-gray-500">No batches available</div>
+            ) : (
+              availableBatches.map((batch) => (
+                <div
+                  key={batch.id}
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  onClick={() => {
+                    if (selectedProductForBatch) {
+                      addToSale(selectedProductForBatch, batch)
+                      setShowBatchDialog(false)
+                    }
+                  }}
+                >
+                  <div>
+                    <div className="font-medium">Batch: {batch.batch_number}</div>
+                    <div className="text-sm text-gray-600">Expires: {new Date(batch.expiration_date).toLocaleDateString()}</div>
+                  </div>
+                  <Badge variant="outline">{batch.quantity} units</Badge>
+                </div>
+              ))
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
