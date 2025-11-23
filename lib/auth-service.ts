@@ -1,6 +1,6 @@
 
-const AUTH_API_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || 'http://127.0.0.1:8000';
-const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://127.0.0.1:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://127.0.0.1:8000';
+const AUTH_API_URL = API_URL; // Use the same API URL for auth
 
 export interface LoginResponse {
   access_token: string;

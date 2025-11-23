@@ -29,38 +29,45 @@ export default function SalesPage() {
         userData.role = userData.role || 'staff';
         setUser(userData)
 
-        const ordersData = await apiService.getOrders()
+        const [ordersData, usersData] = await Promise.all([
+          apiService.getOrders(),
+          apiService.getClients()
+        ])
         
-        const mappedSales = ordersData.map((order: any) => ({
-          id: order.id.toString(),
-          invoice_number: order.id.toString().padStart(6, '0'),
-          total_amount: order.total_value,
-          discount_amount: 0,
-          final_amount: order.total_value,
-          sale_date: order.created_at,
-          prescription_required: order.items.some((item: any) => item.product?.requires_prescription),
-          clients: order.user ? {
-            name: order.user.name,
-            cpf: order.user.cpf || "N/A"
-          } : undefined,
-          profiles: {
-            full_name: "Staff" // Backend doesn't track seller yet
-          },
-          payment_methods: {
-            name: order.payment_method || "Cash"
-          },
-          sale_items: order.items.map((item: any) => ({
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-            total_price: item.quantity * item.unit_price,
-            discount_applied: 0,
-            batch_number: item.batch?.batch_number,
-            products: {
-              name: item.product?.name || "Unknown Product",
-              anvisa_label: item.product?.stripe || "over-the-counter"
-            }
-          }))
-        }))
+        const mappedSales = ordersData.map((order: any) => {
+          const seller = usersData.find((u: any) => u.id === order.seller_id)
+          
+          return {
+            id: order.id.toString(),
+            invoice_number: order.id.toString().padStart(6, '0'),
+            total_amount: order.total_value,
+            discount_amount: 0,
+            final_amount: order.total_value,
+            sale_date: order.created_at,
+            prescription_required: order.items.some((item: any) => item.product?.requires_prescription),
+            clients: order.user ? {
+              name: order.user.name,
+              cpf: order.user.cpf || "N/A"
+            } : undefined,
+            profiles: {
+              full_name: seller?.name || "Staff"
+            },
+            payment_methods: {
+              name: order.payment_method || "Cash"
+            },
+            sale_items: order.items.map((item: any) => ({
+              quantity: item.quantity,
+              unit_price: item.unit_price,
+              total_price: item.quantity * item.unit_price,
+              discount_applied: 0,
+              batch_number: item.batch?.batch_number,
+              products: {
+                name: item.product?.name || "Unknown Product",
+                anvisa_label: item.product?.stripe || "over-the-counter"
+              }
+            }))
+          }
+        })
         
         setSales(mappedSales)
       } catch (error) {

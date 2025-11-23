@@ -79,6 +79,7 @@ export default function DashboardPage() {
           .slice(0, 5) // Get top 5 recent sales
           .map((order: any) => {
             const client = users.find((u: any) => u.id === order.user_id)
+            const seller = users.find((u: any) => u.id === order.seller_id)
             const firstItem = order.items[0]
             const product = products.find((p: any) => p.id === firstItem?.product_id)
             
@@ -93,7 +94,7 @@ export default function DashboardPage() {
                 price: firstItem?.unit_price || 0
               },
               profiles: {
-                full_name: "Staff" // Placeholder as seller info is not yet in Order model
+                full_name: seller?.name || "Staff"
               }
             }
           })

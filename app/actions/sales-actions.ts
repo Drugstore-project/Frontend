@@ -30,6 +30,7 @@ export async function createSale(saleData: {
       }))
     };
 
+    console.log("Using API URL:", API_URL);
     console.log("Sending payload to backend:", JSON.stringify(payload, null, 2));
 
     const response = await fetch(`${API_URL}/orders/`, {
