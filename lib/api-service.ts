@@ -2,7 +2,14 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKE
 
 export const apiService = {
   async getProducts() {
-    const response = await fetch(`${API_URL}/products/`, { cache: 'no-store' });
+    const timestamp = new Date().getTime();
+    const response = await fetch(`${API_URL}/products/?_t=${timestamp}`, { 
+        cache: 'no-store',
+        headers: {
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache'
+        }
+    });
     if (!response.ok) throw new Error('Failed to fetch products');
     return response.json();
   },
