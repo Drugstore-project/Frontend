@@ -26,9 +26,7 @@ export const authService = {
     try {
       const response = await fetch(`${AUTH_API_URL}/auth/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
+        // Content-Type is automatically set to application/x-www-form-urlencoded when using URLSearchParams
         body: formData,
       });
 
