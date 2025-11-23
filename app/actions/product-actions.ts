@@ -30,7 +30,8 @@ export async function createProduct(formData: {
       validity: formData.expiration_date, // Map expiration_date to validity
       stripe: formData.anvisa_label, // Map anvisa_label to stripe
       requires_prescription: formData.requires_prescription,
-      category: formData.category_id // Assuming category_id is just a string name for now, or backend needs update
+      category: formData.category_id, // Assuming category_id is just a string name for now, or backend needs update
+      batch_number: formData.batch_number // Pass batch_number if backend supports it (or ignores it)
     };
 
     const response = await fetch(`${API_URL}/products/`, {
@@ -201,5 +202,22 @@ export async function receiveSupplierOrder(orderId: string, batchData: { batch_n
     return { success: true }
   } catch (error) {
     return { success: false, error: "An unexpected error occurred" }
+  }
+}
+
+export async function deleteProduct(productId: string) {
+  try {
+    const response = await fetch(`${API_URL}/products/${productId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      return { success: false, error: "Failed to delete product" };
+    }
+
+    revalidatePath("/products");
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: `Connection error: ${error.message}` };
   }
 }

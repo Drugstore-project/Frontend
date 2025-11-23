@@ -208,6 +208,7 @@ export default function ProductsPage() {
             <ProductList 
               products={products} 
               onEdit={canManageProducts ? handleEditProduct : undefined} 
+              onDelete={canManageProducts ? fetchProducts : undefined}
             />
           </TabsContent>
 

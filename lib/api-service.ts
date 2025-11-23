@@ -23,13 +23,19 @@ export const apiService = {
 
   async createClient(clientData: any) {
     // Fetch roles to find 'client' role ID
-    let roleId = 2; // Default fallback
+    let roleId = null;
     try {
         const roles = await this.getRoles();
-        const clientRole = roles.find((r: any) => r.name === 'client');
-        if (clientRole) roleId = clientRole.id;
+        const clientRole = roles.find((r: any) => r.name.toLowerCase() === 'client');
+        if (clientRole) {
+            roleId = clientRole.id;
+        }
     } catch (e) {
-        console.warn("Could not fetch roles, using default ID", e);
+        console.warn("Could not fetch roles", e);
+    }
+
+    if (!roleId) {
+        throw new Error("Client role configuration missing. Please contact support.");
     }
 
     const payload = {

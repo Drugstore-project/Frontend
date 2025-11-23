@@ -19,7 +19,7 @@ export default function ClientsPage() {
     try {
       const allUsers = await apiService.getClients()
       const mappedClients = allUsers
-        .filter((u: any) => u.client_type || u.role_id === 2) 
+        .filter((u: any) => (u.role_name && u.role_name.toLowerCase() === 'client') || u.client_type) 
         .map((u: any) => ({
           id: u.id.toString(),
           cpf: u.cpf || "",

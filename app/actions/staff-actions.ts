@@ -27,6 +27,9 @@ export async function getStaffMembers() {
     const staff = users
       .filter((u: any) => {
         const roleName = roleMap.get(u.role_id);
+        // Filter out clients/customers AND ensure we only show staff roles
+        // Assuming roles: 1=Admin, 2=Pharmacist, 3=Manager, 4=Client
+        // We want to exclude Client (4) and potentially others if defined
         return roleName && !['client', 'customer'].includes(roleName.toLowerCase());
       })
       .map((u: any) => ({

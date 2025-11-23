@@ -189,3 +189,147 @@ Backend response status: 200
  ✓ Compiled in 1860ms (2258 modules)
  ✓ Compiled in 1113ms (2260 modules)
  ✓ Compiled in 4.2s (2260 modules)
+ ○ Compiling /sales ...
+ ✓ Compiled /sales in 3.9s (1064 modules)
+ ○ Compiling /products ...
+ ✓ Compiled /products in 3.3s (1087 modules)
+ GET /sales 200 in 2157ms
+ GET /auth/login 200 in 129ms
+ GET /auth/login 200 in 129ms
+ ○ Compiling /clients ...
+ POST /admin/staff 200 in 106ms
+ POST /admin/staff 200 in 58ms
+ POST /admin/staff 200 in 59ms
+ POST /admin/staff 200 in 52ms
+ POST /admin/staff 200 in 61ms
+ POST /admin/staff 200 in 63ms
+ POST /admin/staff 200 in 464ms
+ POST /admin/staff 200 in 103ms
+ POST /products 200 in 231ms
+ POST /products 200 in 269ms
+Sending payload to backend: {
+  "user_id": null,
+  "seller_id": 1,
+  "payment_method": "pix",
+  "status": "paid",
+  "items": [
+    {
+      "product_id": 1,
+      "quantity": 51,
+      "unit_price": 3
+    }
+  ]
+}
+Backend response status: 200
+ POST /sales/new 200 in 241ms
+ POST /products?tab=stock-alerts 200 in 80ms
+ POST /orders 200 in 95ms
+Sending payload to backend: {
+  "user_id": null,
+  "seller_id": 1,
+  "payment_method": "debit_card",
+  "status": "paid",
+  "items": [
+    {
+      "product_id": 1,
+      "quantity": 6,
+      "unit_price": 3
+    }
+  ]
+}
+Backend response status: 500
+ POST /sales/new 200 in 82ms
+Sending payload to backend: {
+  "user_id": null,
+  "seller_id": 1,
+  "payment_method": "cash",
+  "status": "paid",
+  "items": [
+    {
+      "product_id": 1,
+      "quantity": 6,
+      "unit_price": 3
+    }
+  ]
+}
+Backend response status: 500
+ POST /sales/new 200 in 72ms
+Sending payload to backend: {
+  "user_id": null,
+  "seller_id": 1,
+  "payment_method": "cash",
+  "status": "paid",
+  "items": [
+    {
+      "product_id": 1,
+      "quantity": 6,
+      "unit_price": 3
+    }
+  ]
+}
+Backend response status: 500
+ POST /sales/new 200 in 67ms
+ GET /sales/new 200 in 253ms
+ ✓ Compiled /orders in 3.1s (1750 modules)
+ ✓ Compiled in 1088ms (1750 modules)
+ ✓ Compiled in 1950ms (1750 modules)
+ GET /products 200 in 272ms
+Sending payload to backend: {
+  "user_id": null,
+  "seller_id": 1,
+  "payment_method": "cash",
+  "status": "paid",
+  "items": [
+    {
+      "product_id": 1,
+      "quantity": 1,
+      "unit_price": 3
+    }
+  ]
+}
+Backend response status: 200
+ POST /sales/new 200 in 143ms
+ ✓ Compiled in 2.2s (1750 modules)
+ ✓ Compiled in 1954ms (1736 modules)
+ ✓ Compiled in 1967ms (1750 modules)
+ ✓ Compiled in 1580ms (1746 modules)
+ ✓ Compiled in 1222ms (1746 modules)
+ ✓ Compiled in 1097ms (1746 modules)
+ ✓ Compiled in 1133ms (1746 modules)
+ ✓ Compiled in 1763ms (1746 modules)
+ ✓ Compiled in 1143ms (1746 modules)
+ ✓ Compiled in 1091ms (1746 modules)
+ GET /sales/new 200 in 341ms
+ ○ Compiling /admin ...
+ ✓ Compiled /admin/staff in 4.5s (1076 modules)
+ ✓ Compiled (1086 modules)
+ POST /admin/staff 200 in 109ms
+ POST /admin/staff 200 in 56ms
+ ✓ Compiled in 2.1s (2260 modules)
+ ✓ Compiled in 743ms (1202 modules)
+ GET /dashboard 200 in 376ms
+ ○ Compiling /sales/new ...
+ ✓ Compiled /sales/new in 1053ms (1067 modules)
+ ✓ Compiled in 3.5s (2257 modules)
+ ○ Compiling /products ...
+ ✓ Compiled /products in 2.6s (1079 modules)
+ ✓ Compiled in 2.8s (2285 modules)
+Sending payload to backend: {
+  "user_id": null,
+  "seller_id": 1,
+  "payment_method": "cash",
+  "status": "paid",
+  "items": [
+    {
+      "product_id": 1,
+      "quantity": 9,
+      "unit_price": 3,
+      "batch_id": 2
+    }
+  ]
+}
+Backend response status: 200
+ POST /sales/new 200 in 139ms
+ ✓ Compiled in 1926ms (2261 modules)
+ ✓ Compiled in 2.2s (2247 modules)
+ ✓ Compiled in 1861ms (2247 modules)

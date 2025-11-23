@@ -55,6 +55,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     { href: "/dashboard", label: "Dashboard" },
     { href: "/sales", label: "Sales", icon: ShoppingCart },
     { href: "/products", label: "Products" },
+    { href: "/orders", label: "Orders" },
     ...(user?.role && ["manager", "owner"].includes(user.role)
       ? [
           { href: "/clients", label: "Clients" },

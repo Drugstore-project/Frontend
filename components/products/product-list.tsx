@@ -6,15 +6,17 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Search, Edit, Package, AlertTriangle, Calendar, Barcode, Layers } from "lucide-react"
+import { Search, Edit, Package, AlertTriangle, Calendar, Barcode, Layers, Trash2 } from "lucide-react"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog"
 import { apiService } from "@/lib/api-service"
+import { deleteProduct } from "@/app/actions/product-actions"
 
 interface Product {
   id: string
@@ -44,14 +46,19 @@ interface Product {
 interface ProductListProps {
   products: Product[]
   onEdit?: (product: Product) => void
+  onDelete?: () => void
 }
 
-export function ProductList({ products, onEdit }: ProductListProps) {
+export function ProductList({ products, onEdit, onDelete }: ProductListProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterLabel, setFilterLabel] = useState<string>("all")
   const [selectedProductBatches, setSelectedProductBatches] = useState<any[]>([])
   const [isBatchDialogOpen, setIsBatchDialogOpen] = useState(false)
   const [loadingBatches, setLoadingBatches] = useState(false)
+  
+  // Delete State
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const handleViewBatches = async (productId: string) => {
     setLoadingBatches(true)
@@ -64,6 +71,29 @@ export function ProductList({ products, onEdit }: ProductListProps) {
       setSelectedProductBatches([])
     } finally {
       setLoadingBatches(false)
+    }
+  }
+
+  const handleDeleteClick = (product: Product) => {
+    setProductToDelete(product)
+  }
+
+  const confirmDelete = async () => {
+    if (!productToDelete) return
+    
+    setIsDeleting(true)
+    try {
+      const result = await deleteProduct(productToDelete.id)
+      if (result.success) {
+        setProductToDelete(null)
+        if (onDelete) onDelete()
+      } else {
+        alert("Failed to delete product: " + result.error)
+      }
+    } catch (e) {
+      alert("An error occurred while deleting")
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -290,6 +320,14 @@ export function ProductList({ products, onEdit }: ProductListProps) {
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDeleteClick(product)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   </Card>
@@ -328,6 +366,23 @@ export function ProductList({ products, onEdit }: ProductListProps) {
                   </div>
                 )}
               </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={!!productToDelete} onOpenChange={(open) => !open && setProductToDelete(null)}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete Product</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete <strong>{productToDelete?.name}</strong>? This action cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setProductToDelete(null)}>Cancel</Button>
+                <Button variant="destructive" onClick={confirmDelete} disabled={isDeleting}>
+                  {isDeleting ? "Deleting..." : "Delete Product"}
+                </Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </CardContent>
