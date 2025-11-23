@@ -180,9 +180,17 @@ export default function ProductsPage() {
       <DashboardHeader user={user} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Product Management</h1>
-          <p className="text-gray-600">Manage medications with Anvisa compliance and stock control</p>
+        <div className="mb-8 flex justify-between items-end">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Product Management ({products.length})</h1>
+            <p className="text-gray-600">Manage medications with Anvisa compliance and stock control</p>
+          </div>
+          <button 
+            onClick={fetchProducts}
+            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+          >
+            Refresh List
+          </button>
         </div>
 
         <Tabs 

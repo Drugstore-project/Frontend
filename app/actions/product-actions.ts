@@ -212,7 +212,13 @@ export async function deleteProduct(productId: string) {
     });
 
     if (!response.ok) {
-      return { success: false, error: "Failed to delete product" };
+      const errorText = await response.text();
+      let errorDetail = errorText;
+      try {
+          const errorJson = JSON.parse(errorText);
+          errorDetail = errorJson.detail || errorText;
+      } catch (e) {}
+      return { success: false, error: errorDetail || "Failed to delete product" };
     }
 
     revalidatePath("/products");
