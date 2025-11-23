@@ -191,6 +191,20 @@ export default function ProductsPage() {
           >
             Refresh List
           </button>
+          <button 
+            onClick={async () => {
+                try {
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'}/debug/db-content`);
+                    const data = await res.json();
+                    alert(JSON.stringify(data, null, 2));
+                } catch (e: any) {
+                    alert("Debug failed: " + e.message);
+                }
+            }}
+            className="text-red-600 hover:text-red-800 text-sm font-medium ml-4"
+          >
+            Debug DB
+          </button>
         </div>
 
         <Tabs 
