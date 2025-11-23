@@ -907,3 +907,12 @@ Backend response status: 200
  ✓ Compiled in 607ms (402 modules)
  ✓ Compiled in 698ms (402 modules)
  ✓ Compiled in 705ms (402 modules)
+ ✓ Compiled in 615ms (402 modules)
+ ✓ Compiled in 510ms (388 modules)
+ ✓ Compiled in 511ms (388 modules)
+ ○ Compiling /sales ...
+ ✓ Compiled /sales in 1595ms (779 modules)
+ ○ Compiling /products ...
+ ✓ Compiled /products in 1787ms (869 modules)
+ POST /products 200 in 123ms
+ POST /products 200 in 53ms

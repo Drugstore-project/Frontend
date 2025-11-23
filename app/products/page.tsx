@@ -205,6 +205,9 @@ export default function ProductsPage() {
           >
             Debug DB
           </button>
+          <div className="text-xs text-gray-400 ml-4">
+            API: {process.env.NEXT_PUBLIC_API_URL || 'Local default'}
+          </div>
         </div>
 
         <Tabs 
